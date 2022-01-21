@@ -1,11 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 
-const { getReviews, getReviewMeta, markReviewHelpful, markReviewReported } = require('../db/index.js');
+const { getReviews, getReviewMeta, markReviewHelpful, markReviewReported, addReview } = require('../db/index.js');
 
 const app = express();
 app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json())
 
 app.get('/reviews', async (req, res) => {
   const productId = req.query.product_id || 1;
@@ -55,6 +58,17 @@ app.put('/reviews/:review_id/report', async (req, res) => {
   }
 
   res.status(204).end();
+})
+
+app.post('/reviews', async (req, res) => {
+  try {
+    await addReview(req.body);
+  } catch (e) {
+    console.log(e);
+    res.status(500).end();
+  }
+
+  res.status(201).end();
 })
 
 app.listen(8000, () => {
