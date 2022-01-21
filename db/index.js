@@ -13,7 +13,7 @@ const getReviews = (productId) => {
   let reviews;
 
   return pool.query(`SELECT id, product_id, rating, '1970-01-01 00:00:00 GMT'::timestamp + ((date/1000)::text)::interval as date, summary, body, recommend, reported, reviewer_name, reviewer_email, response,
-  helpfulness FROM reviews where product_id=${productId}`)
+  helpfulness FROM reviews WHERE product_id=${productId} AND reported=false`)
     .then((reviews_raw) => {
       reviews = reviews_raw.rows;
       let photoPromises = [];
@@ -90,7 +90,13 @@ const getReviewMeta = (productId) => {
     })
 };
 
+const markReviewHelpful = (reviewId) => pool.query(`UPDATE reviews SET helpfulness=(SELECT helpfulness FROM reviews where id=${reviewId})+1 where id=${reviewId}`)
+
+const markReviewReported = (reviewId) => pool.query(`UPDATE reviews SET reported=true where id=${reviewId}`)
+
 module.exports = {
   getReviews,
   getReviewMeta,
+  markReviewHelpful,
+  markReviewReported,
 };
